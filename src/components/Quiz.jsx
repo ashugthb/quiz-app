@@ -5,22 +5,37 @@ import QuestionTimer from "./QuestionTimer";
 
 export default function Quiz() {
   const [userAnswer, setUserAnswer] = useState([]);
-  const activeQuestionIndex = userAnswer.length;
+  let activeQuestionIndex = userAnswer.length;
+  const [flipped, setFlipped] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState("");
+
+  const handleFlip = () => {
+    setFlipped((prevState) => !prevState);
+  };
 
   const isQuizCompleted = activeQuestionIndex === QUESTIONS.length;
 
   const handleSelectAnswer = useCallback(function handleSelectedAnswer(
     selectedAnswer
   ) {
-    setUserAnswer((prevAnswers) => {
-      return [...prevAnswers, selectedAnswer];
-    });
+    setTimeout(() => {
+      setUserAnswer((prevAnswers) => {
+        return [...prevAnswers, selectedAnswer];
+      });
+      setFlipped((prevState) => !prevState);
+    }, 3000);
+    setFlipped((prevState) => !prevState);
+
+    setSelectedAnswer("");
   },
   []);
+
+  console.log(userAnswer);
   const handleSkipAnswer = useCallback(
     () => handleSelectAnswer(null),
     [handleSelectAnswer]
   );
+
   if (isQuizCompleted) {
     return (
       <div id="summary">
@@ -32,23 +47,30 @@ export default function Quiz() {
   const shuffledAnswers = [...QUESTIONS[activeQuestionIndex].answers];
   shuffledAnswers.sort(() => Math.random() - 0.5);
   return (
-    <div id="quiz">
-      <div id="question">
-        <QuestionTimer
-          key={activeQuestionIndex}
-          timeout={10000}
-          onTimeout={() => handleSkipAnswer(null)}
-        />
-        <h2>{QUESTIONS[activeQuestionIndex].text}</h2>
-        <ul id="answers">
-          {shuffledAnswers.map((answer) => (
-            <li key={answer} className="answer">
-              <button onClick={() => handleSelectAnswer(answer)}>
-                {answer}
-              </button>
-            </li>
-          ))}
-        </ul>
+    <div className={`flip-card ${flipped ? "flipped" : ""}`}>
+      <div id="quiz" className="flip-card-inner">
+        <div id="question" className="flip-card-front">
+          <QuestionTimer
+            key={activeQuestionIndex}
+            timeout={100000}
+            onTimeout={() => handleSkipAnswer(null)}
+          />
+          <h2>{QUESTIONS[activeQuestionIndex].text}</h2>
+          <ul id="answers">
+            {shuffledAnswers.map((answer) => (
+              <li key={answer} className="answer">
+                <button onClick={() => handleSelectAnswer(answer)}>
+                  {answer}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="flip-card-back">
+          <h2>Question : {QUESTIONS[activeQuestionIndex].text}</h2>
+          <h2>ANSWER</h2>
+          <li> {QUESTIONS[activeQuestionIndex].answers[1]}</li>
+        </div>
       </div>
     </div>
   );
